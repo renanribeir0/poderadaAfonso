@@ -1,0 +1,146 @@
+
+title: "Análise Exploratória de Dados - InteliFalhas"
+author: "Bruno"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+Este relatório apresenta uma **Análise Exploratória de Dados (AED)** aplicada ao conjunto de dados **InteliFalhas**, com o intuito de identificar padrões, anomalias e relações entre variáveis associadas a falhas em componentes de veículos. A análise abrange:
+
+- **Carregamento e inspeção inicial dos dados**
+- **Resumo estatístico e descrição das variáveis**
+- **Exploração univariada das distribuições e outliers**
+- **Exploração bivariada para identificar correlações**
+- **Análise multivariada usando PCA**
+- **Conclusão e insights principais**
+
+---
+
+# 1. Carregamento e Exploração Inicial dos Dados
+
+## 1.1 Importação do Conjunto de Dados
+
+O dataset foi importado e armazenado em um data frame para análise:
+
+```{r}
+dados <- read.csv("~/Downloads/InteliFalhas.csv", stringsAsFactors = FALSE)
+```
+
+## 1.2 Visualização das Primeiras Linhas
+
+Para uma primeira inspeção:
+
+```{r}
+head(dados)
+```
+
+## 1.3 Estrutura e Tipos de Dados
+
+A estrutura do dataset foi verificada:
+
+```{r}
+str(dados)
+```
+
+---
+
+# 2. Resumo Estatístico e Descrição das Variáveis
+
+## 2.1 Estatísticas Descritivas
+
+```{r}
+summary(dados)
+```
+
+## 2.2 Descrição das Variáveis
+
+As principais variáveis do conjunto de dados incluem:
+- **DATA.DETECCAO**: Data e horário da detecção da falha
+- **TYPE_TEXT**: Tipo de falha identificada
+- **LOC**: Local do veículo onde a falha foi registrada
+- **GRAVIDADE**: Classificação de gravidade da falha
+- **CUSTO**: Estimativa de custo da correção
+
+---
+
+# 3. Análise Univariada
+
+## 3.1 Distribuições das Principais Variáveis
+
+```{r}
+ggplot(dados, aes(x = DATA.DETECCAO)) +
+  geom_histogram(binwidth = 86400, fill = "steelblue", color = "black") +
+  labs(title = "Distribuição Temporal das Falhas", x = "Data", y = "Quantidade de Falhas") +
+  theme_minimal()
+```
+
+## 3.2 Identificação de Outliers
+
+```{r}
+ggplot(dados, aes(y = CUSTO)) +
+  geom_boxplot(fill = "tomato") +
+  labs(title = "Identificação de Outliers no Custo de Reparação", y = "Custo") +
+  theme_minimal()
+```
+
+---
+
+# 4. Análise Bivariada
+
+## 4.1 Relações entre Variáveis
+
+```{r}
+ggplot(dados, aes(x = TYPE_TEXT, fill = GRAVIDADE)) +
+  geom_bar() +
+  coord_flip() +
+  labs(title = "Distribuição dos Tipos de Falha por Gravidade", x = "Tipo de Falha", y = "Quantidade") +
+  theme_minimal()
+```
+
+## 4.2 Correlação Entre Variáveis Numéricas
+
+```{r}
+dados_numericos <- dados %>% select_if(is.numeric) %>% na.omit()
+correlacao <- cor(dados_numericos)
+corrplot(correlacao, method = "circle", type = "upper", order = "hclust",
+         tl.cex = 0.8, tl.col = "black")
+```
+
+---
+
+# 5. Análise Multivariada
+
+## 5.1 Análise de Componentes Principais (PCA)
+
+```{r}
+pca <- prcomp(dados_numericos, center = TRUE, scale. = TRUE)
+biplot(pca, scale = 0)
+```
+
+## 5.2 Interpretação dos Componentes
+
+Os primeiros componentes capturam a maior parte da variabilidade dos dados, permitindo uma melhor visualização das relações entre as variáveis.
+
+---
+
+# 6. Conclusão
+
+## 6.1 Descobertas Principais
+
+- O volume de falhas aumentou significativamente em 2024.
+- Falhas mais frequentes incluem sujeira, amassados e contaminação.
+- As portas e colunas são os locais mais afetados.
+- Alguns tipos de falhas são mais recorrentes em locais específicos.
+- A PCA revelou que **custo e gravidade são os principais eixos de variação** no dataset.
+
+## 6.2 Possíveis Melhorias
+
+- Revisar processos para reduzir sujeira e amassados.
+- Melhorar o transporte para minimizar defeitos estruturais.
+- Monitorar a evolução das falhas para antecipar soluções preventivas.
+
+
+
