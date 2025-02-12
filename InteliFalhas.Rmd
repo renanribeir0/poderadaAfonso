@@ -1,6 +1,6 @@
 
 title: "Análise Exploratória de Dados - InteliFalhas"
-author: "Bruno"
+author: "Renan Ribeiro"
 date: "`r Sys.Date()`"
 output: html_document
 editor_options:
