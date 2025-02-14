@@ -1,0 +1,155 @@
+---
+title: "Exploração e Análise de Dados"
+author: "Renan Ribeiro"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+# Introdução
+
+Este documento apresenta uma **Análise Exploratória de Dados (EDA)**
+para compreender padrões e tendências dentro do dataset **InteliFalhas**.
+O objetivo é examinar a distribuição das falhas em componentes veiculares,
+identificar relações entre variáveis e levantar insights para
+possíveis melhorias.
+
+A análise inclui:
+
+- **Carregamento e inspeção dos dados**
+- **Resumo estatístico e caracterização das variáveis**
+- **Visualização das distribuições e outliers**
+- **Relações entre variáveis e correlação**
+- **Análise multivariada (PCA)**
+- **Conclusões e recomendações**
+
+---
+
+# 1. Carregamento e Inspeção Inicial dos Dados
+
+## 1.1 Importação dos Dados
+
+Os dados foram carregados a partir do arquivo `InteliFalhas.csv`:
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(FactoMineR)
+library(factoextra)
+
+dados <- read.csv("~/Downloads/InteliFalhas.csv", stringsAsFactors = FALSE)
+```
+
+## 1.2 Inspeção Inicial
+
+Exibindo as primeiras linhas e estrutura do conjunto de dados:
+
+```{r}
+head(dados)
+str(dados)
+```
+
+## 1.3 Ajuste da Coluna de Data
+
+Convertendo a coluna **`DATA.DETECCAO`** para formato adequado:
+
+```{r}
+dados$DATA.DETECCAO <- as.POSIXct(gsub("\\.\\d+$", "", dados$DATA.DETECCAO),
+                                   format="%Y-%m-%d-%H.%M.%S")
+summary(dados$DATA.DETECCAO)
+```
+
+---
+
+# 2. Resumo Estatístico e Caracterização das Variáveis
+
+## 2.1 Estatísticas Descritivas
+
+```{r}
+summary(dados)
+```
+
+## 2.2 Descrição das Variáveis
+
+- **DATA.DETECCAO**: Momento da identificação da falha.
+- **TYPE_TEXT**: Tipo de falha registrada.
+- **LOC**: Localização do defeito no veículo.
+- **Outras variáveis** que podem influenciar a análise.
+
+---
+
+# 3. Análise Univariada
+
+## 3.1 Distribuição das Falhas ao Longo do Tempo
+
+```{r}
+ggplot(dados, aes(x = DATA.DETECCAO)) +
+  geom_histogram(binwidth = 86400, fill = "steelblue", color = "black") +
+  labs(title = "Distribuição Temporal das Falhas", x = "Data", y = "Quantidade") +
+  theme_minimal()
+```
+
+## 3.2 Identificação de Outliers
+
+```{r}
+boxplot(dados$DATA.DETECCAO, main = "Outliers na Distribuição de Falhas")
+```
+
+---
+
+# 4. Análise Bivariada
+
+## 4.1 Relação entre Tipo de Falha e Frequência
+
+```{r}
+ggplot(dados, aes(x = TYPE_TEXT)) +
+  geom_bar(fill = "steelblue", color = "black") +
+  coord_flip() +
+  labs(title = "Distribuição dos Tipos de Falhas", x = "Tipo", y = "Quantidade") +
+  theme_minimal()
+```
+
+## 4.2 Correlação entre Variáveis Numéricas
+
+```{r}
+dados_numericos <- dados %>% select_if(is.numeric) %>% na.omit()
+correlacao <- cor(dados_numericos)
+corrplot(correlacao, method = "circle", type = "upper", order = "hclust")
+```
+
+---
+
+# 5. Análise Multivariada
+
+## 5.1 Análise de Componentes Principais (PCA)
+
+```{r}
+pca <- PCA(dados_numericos, scale.unit = TRUE, graph = FALSE)
+fviz_pca_var(pca, col.var = "contrib", gradient.cols = c("blue", "red"))
+```
+
+## 5.2 Interpretação dos Componentes
+
+Os primeiros componentes capturam a variabilidade associada a...
+
+---
+
+# 6. Conclusões e Recomendações
+
+## 6.1 Principais Descobertas
+
+- **Tendência de aumento das falhas em 2024**, sugerindo possíveis mudanças no processo.
+- **Sujeira e amassados lideram os registros**, indicando necessidade de melhor controle.
+- **Certas áreas do veículo apresentam concentração de falhas**, sugerindo padrões estruturais.
+
+## 6.2 Possíveis Melhorias
+
+- Revisão dos processos para reduzir ocorrência de sujeira e amassados.
+- Ajuste na logística de transporte e montagem.
+- Monitoramento contínuo dos padrões de falha para antecipação de problemas.
+
+---
+
